@@ -1,0 +1,176 @@
+set nocompatible
+source $VIMRUNTIME/vimrc_example.vim
+source $VIMRUNTIME/mswin.vim
+behave mswin
+
+" < 判断操作系统是否是Windows还是Linux >
+let g:iswindows = 0
+let g:islinux = 0
+if(has("win32") || has("win64"))
+   	let g:iswindows = 1
+else
+	let g:islinux = 1
+endif	
+
+" < 判断是终端还是Gvim >
+if has("gui_running")
+	let g:isGUI = 1
+else
+	let g:isGUI = 0
+endif
+
+set diffexpr=MyDiff()
+function MyDiff()
+  let opt = '-a --binary '
+  if &diffopt =~ 'icase' | let opt = opt . '-i ' | endif
+  if &diffopt =~ 'iwhite' | let opt = opt . '-b ' | endif
+  let arg1 = v:fname_in
+  if arg1 =~ ' ' | let arg1 = '"' . arg1 . '"' | endif
+  let arg2 = v:fname_new
+  if arg2 =~ ' ' | let arg2 = '"' . arg2 . '"' | endif
+  let arg3 = v:fname_out
+  if arg3 =~ ' ' | let arg3 = '"' . arg3 . '"' | endif
+  let eq = ''
+  if $VIMRUNTIME =~ ' '
+    if &sh =~ '\<cmd'
+      let cmd = '""' . $VIMRUNTIME . '\diff"'
+      let eq = '"'
+    else
+      let cmd = substitute($VIMRUNTIME, ' ', '" ', '') . '\diff"'
+    endif
+  else
+    let cmd = $VIMRUNTIME . '\diff'
+  endif
+  silent execute '!' . cmd . ' ' . opt . arg1 . ' ' . arg2 . ' > ' . arg3 . eq
+endfunction
+
+" 设置gvim内部编码，默认不更改
+" 设置当前文件编码，可以更改，如：gbk
+" 设置支持打开的文件的编码
+" 设置命令行高度
+set encoding=utf-8									
+set fileencoding=utf-8
+set fileencodings=ucs-bom,utf-8,gbk,cp936,latin-1
+set cmdheight=2
+
+" 文件格式，默认 ffs=dos,unix
+" 给出文件的<EOL>格式类型
+set fileformat=unix
+set fileformats=unix,dos,mac
+
+if (g:iswindows && g:isGUI)
+	" 解决菜单乱
+	source $VIMRUNTIME/delmenu.vim
+	source $VIMRUNTIME/menu.vim
+
+	" 解决consle输出乱码
+	language messages zh_CN.utf-8
+endif
+
+" 当光标移动到窗口顶部或底部是保持的距离
+set scrolloff=3
+
+" 启用文件类型侦测
+" 针对不同的类型加载对应的插件
+" 启动缩进
+
+filetype on
+filetype plugin on
+filetype plugin indent on
+
+" 启动智能对其方式
+" 将Tab键转换为空格
+" 设置Tab键的宽度，可以更改
+" 换行时自动缩进宽度
+" 指定一次backspace就删除shiftwidth宽度
+" 启动折叠
+" indent折叠方式，还可设置为marker
+" 不生成swapfile
+" 不备份
+set smartindent
+set expandtab
+set tabstop=4
+set shiftwidth=4
+set smarttab
+set foldenable
+set foldmethod=indent
+set noswapfile
+set nobackup
+
+" 常规模式下用空格键来开关光标行所在折叠
+nnoremap <space> @=((foldclosed(line('.')) < 0) ? 'zc' : 'zo')<CR>
+
+" 当文件在外部被修改，自动更新该文件
+set autoread
+
+" 在常规模式下数据cS清除行尾空格
+nmap cS :%s/\s+$//g<CR>:noh<CR>
+
+" 常规模式下数据cM清楚行尾的^M符号
+nmap cM :%s/\r$//g<CR>:noh<CR>
+
+
+" 搜索模式里忽略大小写
+" 如果搜索模式包含大写字符，则不使用“ignorecase”
+set ignorecase
+set smartcase
+
+" 启用每行超过80列的字符提示（字体变蓝并加下划线），不启用就注释掉
+"au BufWinEnter * let w:m2=matchadd('Underlined', '\%>' . 80 . 'v.\+', -1)
+
+" 设置字体
+" 显示行号
+" 状态行
+" 高亮光标所在行
+" 自动换行
+" 去除欢迎页
+" 共享一个剪贴板
+" 魔幻模式
+set guifont=Courier\ New:h11
+set number
+set laststatus=2
+set cursorline
+set wrap
+set shortmess=atI
+set clipboard=unnamed
+set magic
+
+" 设置GVim窗口初始位置及大小
+if g:isGUI
+	winpos 350 5
+	set lines=50 columns=120
+endif
+
+let mapleader = ","
+
+" 设置winManager插件
+" 设置winManager映射
+" 当vim只剩下winManager窗口时，自动关闭
+" 设置winManager窗口的宽度
+let g:winManagerWindowLayout='NERDTree|TagList'
+nmap wm :WMToggle<CR>
+let g:persistentBehaviour=0
+let g:winManagerWidth=35
+
+" 设置taglist
+"let Tlist_Ctags_Cmd='C:\Program Files\ctags.exe'
+let Tlist_Show_OnlyFile=1
+let Tlist_File_Fold_Auto_Close=1
+" let Tlist_Show_Menu=1
+let Tlist_Exit_OnlyWindow=1
+
+" NERDTree
+let NERDTreeChDirMode=1
+
+" 编译python程序
+map <F5> :call CompileRunGcc()<CR>
+func! CompileRunGcc()
+    exec "w"
+    if &filetype == 'python'
+        exec "!python %"
+    endif
+endfunc
+
+
+let g:zipPlugin_ext = '*.zip,*.jar,*.xpi,*.ja,*.war,*.ear,*.celzip,*.oxt,*.kmz,*.wsz,*.xap,*.docx,*.docm,*.dotx,*.dotm,*.potx,*.potm,*.ppsx,*.ppsm,*.pptx,*.pptm,*.ppam,*.sldx,*.thmx,*.crtx,*.vdw,*.glox,*.gcsx,*.gqsx'
+
